@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Khordong – Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#100e0b; --s1:#1c1812; --s2:#252018; --s3:#2e2820;
+  --border:#3a3228; --gold:#c8a84a; --gold2:#e6c870; --golddim:#6a5828;
+  --text:#ede4d4; --muted:#8a7c68; --dim:#504840;
+  --green:#5a9648; --red:#b84830; --blue:#4870a8; --r:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;}
+.app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;}
+
+/* HEADER */
+.header{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 18px 12px;flex-shrink:0;}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--gold);letter-spacing:.1em;}
+.sync-btn{background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .15s;}
+.sync-btn:hover,.sync-btn.syncing{border-color:var(--golddim);color:var(--gold);}
+.event-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.event-scroll::-webkit-scrollbar{display:none;}
+.event-pill{flex-shrink:0;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.event-pill.active{background:var(--golddim);border-color:var(--gold);color:var(--gold2);}
+
+/* VIEWS */
+.scroll{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+.view{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.view.active{display:flex;}
+
+/* CARDS */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--border);}
+.card-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--text);}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);}
+.stat{padding:14px 10px;text-align:center;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:var(--gold);line-height:1;margin-bottom:4px;}
+.stat-l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
+
+/* MEALS */
+.meal-row{display:grid;grid-template-columns:repeat(3,1fr);}
+.meal-cell{padding:14px 8px;text-align:center;border-right:1px solid var(--border);}
+.meal-cell:last-child{border-right:none;}
+.meal-icon{font-size:22px;margin-bottom:6px;}
+.meal-type{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:6px;}
+.meal-n{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--text);line-height:1;}
+.meal-note{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* DATE NAV */
+.date-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);}
+.date-nav-btn{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:2px 10px;border-radius:4px;transition:all .15s;}
+.date-nav-btn:hover{background:var(--s2);color:var(--text);}
+.date-nav-btn:disabled{opacity:.3;cursor:default;}
+.date-label{font-size:13px;color:var(--text);letter-spacing:.04em;text-align:center;flex:1;}
+
+/* CALENDAR */
+.cal-wrap{padding:12px 14px 10px;border-bottom:1px solid var(--border);}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-title{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{text-align:center;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding-bottom:4px;}
+.cal-day{text-align:center;padding:6px 2px;border-radius:4px;font-size:12px;cursor:pointer;color:var(--muted);transition:all .15s;border:1px solid transparent;}
+.cal-day:hover{background:var(--s2);color:var(--text);}
+.cal-day.has-meals{color:var(--text);}
+.cal-day.selected{background:var(--golddim);border-color:var(--gold);color:var(--gold2);}
+.cal-day.empty{cursor:default;visibility:hidden;}
+
+/* PEOPLE */
+.search-bar{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--s1);flex-shrink:0;}
+.search-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;}
+.search-input:focus{border-color:var(--golddim);}
+.search-input::placeholder{color:var(--dim);}
+.person{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;gap:12px;}
+.person:last-child{border-bottom:none;}
+.person:active{background:var(--s2);}
+.person-avatar{width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);flex-shrink:0;}
+.person-info{flex:1;min-width:0;}
+.person-name{color:var(--text);font-size:13px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.person-meta{color:var(--muted);font-size:11px;}
+.person-right{text-align:right;flex-shrink:0;}
+.person-dates{font-size:10px;color:var(--dim);margin-top:4px;}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;letter-spacing:.05em;text-transform:uppercase;}
+.b-green{background:rgba(90,150,72,.2);color:#7ad060;border:1px solid rgba(90,150,72,.3);}
+.b-yellow{background:rgba(200,168,74,.15);color:var(--gold);border:1px solid rgba(200,168,74,.25);}
+.b-red{background:rgba(184,72,48,.2);color:#e07060;border:1px solid rgba(184,72,48,.3);}
+
+/* MAIL */
+.mail-body{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.field-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:4px;}
+.template-row{display:flex;flex-wrap:wrap;gap:6px;}
+.tpl{background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tpl.active,.tpl:hover{border-color:var(--golddim);color:var(--gold2);background:rgba(200,168,74,.08);}
+.mail-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;resize:none;height:90px;}
+.mail-textarea:focus{border-color:var(--golddim);}
+.recipients-wrap{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:5px;min-height:40px;}
+.chip{background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.chip-x{cursor:pointer;color:var(--dim);font-size:13px;}
+.chip-x:hover{color:var(--red);}
+.btn-send{background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);padding:13px;font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;cursor:pointer;width:100%;}
+.btn-send:hover{background:var(--gold2);}
+
+/* SHEET */
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;align-items:flex-end;}
+.sheet-overlay.open{display:flex;}
+.sheet{background:var(--s1);border-radius:16px 16px 0 0;border:1px solid var(--border);border-bottom:none;width:100%;max-height:85vh;overflow-y:auto;transform:translateY(100%);transition:transform .3s ease;}
+.sheet-overlay.open .sheet{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.sheet-head{padding:16px 20px;border-bottom:1px solid var(--border);}
+.sheet-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;margin-bottom:4px;}
+.sheet-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.detail-row{display:flex;gap:12px;}
+.detail-key{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);width:110px;flex-shrink:0;padding-top:2px;}
+.detail-val{color:var(--text);font-size:13px;flex:1;word-break:break-word;}
+.sheet-actions{padding:0 20px 24px;display:flex;gap:8px;}
+.sheet-btn{flex:1;padding:11px;border-radius:var(--r);border:1px solid var(--border);background:var(--s2);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;}
+.sheet-btn.primary{background:var(--golddim);border-color:var(--gold);color:var(--gold2);}
+
+/* BOTTOM NAV */
+.bottom-nav{display:flex;background:var(--s1);border-top:1px solid var(--border);flex-shrink:0;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;cursor:pointer;color:var(--dim);gap:3px;transition:color .15s;}
+.nav-item.active{color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-size:10px;letter-spacing:.06em;}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--s2);border:1px solid var(--golddim);border-radius:var(--r);padding:10px 20px;font-size:12px;color:var(--text);z-index:200;opacity:0;transition:all .25s;white-space:nowrap;max-width:90vw;text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MISC */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--dim);gap:12px;text-align:center;}
+.empty-icon{font-size:40px;}
+.generic-btn{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:11px 16px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;width:100%;}
+.generic-btn:hover,.generic-btn:active{border-color:var(--golddim);color:var(--gold);}
+.generic-btn.primary{background:var(--golddim);border-color:var(--gold);color:var(--gold2);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo">☸ Khordong</div>
+      <button class="sync-btn" id="syncBtn" onclick="syncData()">↻ Odśwież</button>
+    </div>
+    <div class="event-scroll" id="eventPills"></div>
+  </div>
+
+  <!-- PULPIT -->
+  <div class="view active" id="view-dash">
+    <div class="scroll" id="dashContent"></div>
+  </div>
+
+  <!-- UCZESTNICY -->
+  <div class="view" id="view-people">
+    <div class="search-bar">
+      <input class="search-input" type="search" placeholder="🔍  Szukaj uczestnika…" id="searchInput" oninput="filterPeople()">
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px;">
+      <div class="card" id="personList"></div>
+    </div>
+  </div>
+
+  <!-- POSIŁKI -->
+  <div class="view" id="view-meals">
+    <div class="scroll" id="mealsContent"></div>
+  </div>
+
+  <!-- MAIL -->
+  <div class="view" id="view-mail">
+    <div class="scroll">
+      <div class="card">
+        <div class="card-head"><span class="card-title">📨 Wyślij przypomnienie</span></div>
+        <div class="mail-body">
+          <div>
+            <div class="field-label">Szablon</div>
+            <div class="template-row">
+              <div class="tpl" onclick="setTemplate(this,'reminder')">📅 Przypomnienie</div>
+              <div class="tpl" onclick="setTemplate(this,'payment')">💳 Płatność</div>
+              <div class="tpl" onclick="setTemplate(this,'info')">ℹ️ Informacje</div>
+              <div class="tpl" onclick="setTemplate(this,'custom')">✏️ Własna</div>
+            </div>
+          </div>
+          <div>
+            <div class="field-label">Odbiorcy (<span id="recipientCount">0</span>)</div>
+            <div class="recipients-wrap" id="recipientsWrap">
+              <span style="color:var(--dim);font-size:12px">Brak odbiorców</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="generic-btn" onclick="addAllRecipients()">+ Wszyscy z kursu</button>
+              <button class="generic-btn" onclick="clearRecipients()">✕ Wyczyść</button>
+            </div>
+          </div>
+          <div>
+            <div class="field-label">Treść</div>
+            <textarea class="mail-textarea" id="mailBody" placeholder="Treść wiadomości…"></textarea>
+          </div>
+          <button class="btn-send" onclick="sendMails()">📨 Wyślij do <span id="sendCount">0</span> osób</button>
+          <div style="font-size:10px;color:var(--dim);text-align:center;">Otwiera domyślnego klienta pocztowego</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-dash" onclick="switchView('dash',this)">
+      <div class="nav-icon">🏠</div><div class="nav-label">Pulpit</div>
+    </div>
+    <div class="nav-item" id="nav-people" onclick="switchView('people',this)">
+      <div class="nav-icon">👥</div><div class="nav-label">Uczestnicy</div>
+    </div>
+    <div class="nav-item" id="nav-meals" onclick="switchView('meals',this)">
+      <div class="nav-icon">🍽</div><div class="nav-label">Posiłki</div>
+    </div>
+    <div class="nav-item" id="nav-mail" onclick="switchView('mail',this)">
+      <div class="nav-icon">📨</div><div class="nav-label">Mail</div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-name" id="sheetName"></div>
+      <div style="font-size:11px;color:var(--muted)" id="sheetSub"></div>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-actions">
+      <button class="sheet-btn" onclick="callPerson()">📞 Zadzwoń</button>
+      <button class="sheet-btn" onclick="mailPerson()">✉️ Mail</button>
+      <button class="sheet-btn primary" onclick="addPersonToMail()">+ Do listy</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────────────
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyAm9LimNYRy6ovRMhgWv0FCMAWLOruD72EmcGEMSbmAymRH9TERWM8AJqI7_S0kIaP/exec';
+
+const SHEET_NAMES = {
+  'PATRUL': 'Patrul Rinpocze',
+  'CZOD': 'Czod',
+  'CZENREZIK': 'Czenrezik',
+  'LAMPKI': 'Lampki',
+  'DAKPA': 'Dakpa',
+  'DZAMBHALA': 'Dzambhala',
+  'WADŻRAKILAJA': 'WadŻrakilaja',
+};
+
+let EVENTS = {};
+Object.keys(SHEET_NAMES).forEach(k => {
+  EVENTS[k] = { name: SHEET_NAMES[k], dates: '', participants: [] };
+});
+
+function parseDate(s) {
+  if (!s) return null;
+  const dt = new Date(s);
+  return isNaN(dt) ? null : dt;
+}
+
+async function loadSheet(sheetKey) {
+  try {
+    const url = SCRIPT_URL + '?sheet=' + encodeURIComponent(sheetKey);
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.participants) {
+      EVENTS[sheetKey].participants = json.participants.map(p => ({
+        ...p,
+        arrival: parseDate(p.arrival),
+        departure: parseDate(p.departure),
+        firstMealDate: parseDate(p.firstMealDate),
+        lastMealDate: parseDate(p.lastMealDate),
+      }));
+    }
+  } catch(err) {
+    console.error('Blad ladowania:', sheetKey, err);
+  }
+}
+
+const TEMPLATES = {
+  reminder:`Drogi Uczestniku,\n\nPrzypominamy o nadchodzącym kursie w ośrodku Khordong Polska.\nProsimy o potwierdzenie przybycia i daty przyjazdu.\n\nZ serdecznymi pozdrowieniami,\nZespół Khordong`,
+  payment:`Drogi Uczestniku,\n\nPrzypominamy o uregulowaniu płatności za kurs.\nDane do przelewu znajdziesz w potwierdzeniu zgłoszenia.\n\nZ serdecznymi pozdrowieniami,\nZespół Khordong`,
+  info:`Drogi Uczestniku,\n\nPrzesyłamy informacje praktyczne:\n– Proszę zabrać wygodne ubrania do medytacji\n– Przyjazd: zgodnie z datą zgłoszenia\n– Ośrodek: [ADRES]\n\nZ serdecznymi pozdrowieniami,\nZespół Khordong`,
+  custom:'',
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentEvent = 'PATRUL';
+let currentPerson = null;
+let mealDate = new Date('2026-03-28');
+let mailRecipients = [];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function d(s){return new Date(s);}
+function initials(n){return n.split(' ').map(x=>x[0]).join('').toUpperCase().slice(0,2);}
+function fmt(dt){if(!dt)return'—';return dt.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmtFull(dt){return dt.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});}
+function fmtShort(dt){if(!dt)return'?';return dt.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit'});}
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+function mealStr(p){return(p.meals||'').toLowerCase();}
+function hasMealType(p,type){
+  const s=mealStr(p);
+  if(s.includes('wszystkie')||s.includes('all 3'))return true;
+  if(type==='breakfast')return s.includes('śniadanie')||s.includes('breakfast');
+  if(type==='lunch')return s.includes('obiad')||s.includes('lunch');
+  if(type==='dinner')return s.includes('kolacja')||s.includes('dinner');
+  return false;
+}
+
+// Kolejność posiłków w ciągu dnia
+const MEAL_ORDER={breakfast:0,lunch:1,dinner:2};
+
+function parseMealType(raw){
+  if(!raw)return null;
+  const s=(raw||'').toLowerCase();
+  if(s.includes('breakfast')||s.includes('śniadanie'))return'breakfast';
+  if(s.includes('lunch')||s.includes('obiad'))return'lunch';
+  if(s.includes('dinner')||s.includes('kolacja'))return'dinner';
+  return null;
+}
+
+function sameDay(a,b){
+  return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+}
+
+function isOnSite(p,date){
+  if(!p.arrival)return false;
+  return date>=p.arrival && date<=(p.departure||p.arrival);
+}
+
+function hasMealOnDate(p,date,type){
+  if(!p.firstMealDate)return false;
+  // czy uczestnik zamówił ten typ posiłku w ogóle?
+  if(!hasMealType(p,type))return false;
+
+  const start=p.firstMealDate;
+  const end=p.lastMealDate||p.departure||p.arrival;
+  const dateMs=date.getTime();
+  const startMs=start.getTime();
+  const endMs=end.getTime();
+
+  // poza zakresem
+  if(dateMs<startMs||dateMs>endMs)return false;
+
+  const isFirst=sameDay(date,start);
+  const isLast=sameDay(date,end);
+  const firstType=parseMealType(p.firstMealType);
+  const lastType=parseMealType(p.lastMealType);
+  const typeOrder=MEAL_ORDER[type];
+
+  if(isFirst&&isLast){
+    // ten sam dzień: tylko między pierwszym a ostatnim typem
+    const lo=firstType?MEAL_ORDER[firstType]:0;
+    const hi=lastType?MEAL_ORDER[lastType]:2;
+    return typeOrder>=lo&&typeOrder<=hi;
+  }
+  if(isFirst){
+    // dzień przyjazdu: od pierwszego typu wzwyż
+    const lo=firstType?MEAL_ORDER[firstType]:0;
+    return typeOrder>=lo;
+  }
+  if(isLast){
+    // dzień wyjazdu: do ostatniego typu włącznie
+    const hi=lastType?MEAL_ORDER[lastType]:2;
+    return typeOrder<=hi;
+  }
+  // dzień pośredni: wszystkie zamówione typy
+  return true;
+}
+
+function countMeals(pp,date){
+  const r={breakfast:0,lunch:0,dinner:0};
+  pp.forEach(p=>{
+    if(hasMealOnDate(p,date,'breakfast'))r.breakfast++;
+    if(hasMealOnDate(p,date,'lunch'))r.lunch++;
+    if(hasMealOnDate(p,date,'dinner'))r.dinner++;
+  });
+  return r;
+}
+
+function getMealNames(pp,date,type){
+  return pp.filter(p=>hasMealOnDate(p,date,type)).map(p=>p.name);
+}
+
+function dateRange(pp){
+  if(!pp.length)return[];
+  let mn=null,mx=null;
+  pp.forEach(p=>{
+    if(p.arrival&&(!mn||p.arrival<mn))mn=new Date(p.arrival);
+    if(p.departure&&(!mx||p.departure>mx))mx=new Date(p.departure);
+  });
+  if(!mn)return[];
+  const arr=[]; const c=new Date(mn);
+  while(c<=mx){arr.push(new Date(c));c.setDate(c.getDate()+1);}
+  return arr;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init(){
+  renderPills();
+  document.getElementById('dashContent').innerHTML='<div style="padding:40px;text-align:center;color:var(--dim)">Ladowanie danych…</div>';
+  await loadSheet(currentEvent);
+  renderDash();
+  renderPeople();
+  renderMeals();
+}
+
+// ── EVENT PILLS ───────────────────────────────────────────────────────────────
+function renderPills(){
+  document.getElementById('eventPills').innerHTML=
+    Object.entries(EVENTS).map(([k,ev])=>
+      `<div class="event-pill ${k===currentEvent?'active':''}" onclick="selectEvent('${k}')">${ev.name}</div>`
+    ).join('');
+}
+
+async function selectEvent(k){
+  currentEvent=k;
+  if(!EVENTS[k].participants.length){
+    await loadSheet(k);
+  }
+  const pp=EVENTS[k].participants;
+  if(pp.length){const dr=dateRange(pp);if(dr.length)mealDate=dr[0];}
+  renderPills(); renderDash(); renderPeople(); renderMeals();
+}
+
+// ── VIEW SWITCH ───────────────────────────────────────────────────────────────
+function switchView(id,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDash(){
+  const ev=EVENTS[currentEvent]; const pp=ev.participants;
+  const today=new Date(); today.setHours(0,0,0,0);
+  const tomorrow=new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
+  const todayM=countMeals(pp,today);
+  const tomorrowM=countMeals(pp,tomorrow);
+  const paid=pp.filter(p=>p.paid).length;
+  const unpaid=pp.length-paid;
+  const present=pp.filter(p=>isOnSite(p,today)).length;
+
+  document.getElementById('dashContent').innerHTML=`
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">📋 ${ev.name}</span>
+        <span style="font-size:11px;color:var(--muted)">${ev.dates}</span>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="stat-n">${pp.length}</div><div class="stat-l">Zgłoszonych</div></div>
+        <div class="stat"><div class="stat-n" style="color:#7ad060">${paid}</div><div class="stat-l">Opłaconych</div></div>
+        <div class="stat"><div class="stat-n" style="color:#e07060">${unpaid}</div><div class="stat-l">Nieopłaconych</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">🍽 Posiłki dziś</span>
+        <span style="font-size:11px;color:var(--muted)">${fmt(today)}</span>
+      </div>
+      <div class="meal-row">
+        <div class="meal-cell"><div class="meal-icon">🌅</div><div class="meal-type">Śniadanie</div><div class="meal-n">${todayM.breakfast}</div><div class="meal-note">osób</div></div>
+        <div class="meal-cell"><div class="meal-icon">☀️</div><div class="meal-type">Obiad</div><div class="meal-n">${todayM.lunch}</div><div class="meal-note">osób</div></div>
+        <div class="meal-cell"><div class="meal-icon">🌙</div><div class="meal-type">Kolacja</div><div class="meal-n">${todayM.dinner}</div><div class="meal-note">osób</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">🍽 Posiłki jutro</span>
+        <span style="font-size:11px;color:var(--muted)">${fmt(tomorrow)}</span>
+      </div>
+      <div class="meal-row">
+        <div class="meal-cell"><div class="meal-icon">🌅</div><div class="meal-type">Śniadanie</div><div class="meal-n">${tomorrowM.breakfast}</div><div class="meal-note">osób</div></div>
+        <div class="meal-cell"><div class="meal-icon">☀️</div><div class="meal-type">Obiad</div><div class="meal-n">${tomorrowM.lunch}</div><div class="meal-note">osób</div></div>
+        <div class="meal-cell"><div class="meal-icon">🌙</div><div class="meal-type">Kolacja</div><div class="meal-n">${tomorrowM.dinner}</div><div class="meal-note">osób</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><span class="card-title">⚡ Szybkie akcje</span></div>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+        <button class="generic-btn" onclick="switchView('people',document.getElementById('nav-people'));renderPeople()">👥 Lista uczestników →</button>
+        <button class="generic-btn" onclick="switchView('meals',document.getElementById('nav-meals'));renderMeals()">🍽 Szczegółowy raport posiłków →</button>
+        <button class="generic-btn primary" onclick="quickReminder()">📨 Wyślij przypomnienie do wszystkich</button>
+      </div>
+    </div>
+
+    ${unpaid>0?`
+    <div class="card" style="border-color:rgba(184,72,48,.4)">
+      <div class="card-head" style="background:rgba(184,72,48,.1)">
+        <span class="card-title" style="color:#e07060">⚠️ Brak płatności (${unpaid})</span>
+      </div>
+      ${pp.filter(p=>!p.paid).map(p=>`
+        <div class="person" onclick="openPerson('${p.id}')">
+          <div class="person-avatar">${initials(p.name)}</div>
+          <div class="person-info">
+            <div class="person-name">${p.name}</div>
+            <div class="person-meta">${fmt(p.arrival)} – ${fmt(p.departure)}</div>
+          </div>
+          <span class="badge b-red">nieopłacone</span>
+        </div>`).join('')}
+    </div>`:''}
+  `;
+}
+
+// ── PEOPLE ────────────────────────────────────────────────────────────────────
+function renderPeople(filter=''){
+  const ev=EVENTS[currentEvent];
+  let pp=ev.participants;
+  if(filter){const q=filter.toLowerCase();pp=pp.filter(p=>p.name.toLowerCase().includes(q)||(p.email||'').includes(q)||(p.phone||'').includes(q));}
+  const el=document.getElementById('personList');
+  if(!pp.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">${filter?'🔍':'👥'}</div><div style="color:var(--dim);font-size:13px">${filter?'Brak wyników':'Brak uczestników w tym wydarzeniu'}</div></div>`;
+    return;
+  }
+  el.innerHTML=pp.map(p=>`
+    <div class="person" onclick="openPerson('${p.id}')">
+      <div class="person-avatar">${initials(p.name)}</div>
+      <div class="person-info">
+        <div class="person-name">${p.name}</div>
+        <div class="person-meta">${p.accommodation} · ${p.meals}</div>
+      </div>
+      <div class="person-right">
+        <span class="badge ${p.paid?'b-green':'b-red'}">${p.paid?'✓ opłac.':'✕ nieopłac.'}</span>
+        <div class="person-dates">${fmtShort(p.arrival)}→${fmtShort(p.departure)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filterPeople(){renderPeople(document.getElementById('searchInput').value);}
+
+function openPerson(id){
+  const p=EVENTS[currentEvent].participants.find(x=>x.id===id);
+  if(!p)return;
+  currentPerson=p;
+  document.getElementById('sheetName').textContent=p.name;
+  document.getElementById('sheetSub').textContent=EVENTS[currentEvent].name+' · '+p.id;
+  document.getElementById('sheetBody').innerHTML=`
+    <div class="detail-row"><div class="detail-key">Przyjazd</div><div class="detail-val">${fmt(p.arrival)}</div></div>
+    <div class="detail-row"><div class="detail-key">Wyjazd</div><div class="detail-val">${fmt(p.departure)}</div></div>
+    <div class="detail-row"><div class="detail-key">Zakwaterowanie</div><div class="detail-val">${p.accommodation}</div></div>
+    <div class="detail-row"><div class="detail-key">Posiłki</div><div class="detail-val">${p.meals}</div></div>
+    <div class="detail-row"><div class="detail-key">Pierwszy posiłek</div><div class="detail-val">${p.firstMealDate?fmt(p.firstMealDate)+' ('+p.firstMealType+')':'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Ostatni posiłek</div><div class="detail-val">${p.lastMealDate?fmt(p.lastMealDate)+' ('+p.lastMealType+')':'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Telefon</div><div class="detail-val">${p.phone||'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">E-mail</div><div class="detail-val">${p.email||'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Płatność</div><div class="detail-val"><span class="badge ${p.paid?'b-green':'b-red'}">${p.paid?'✓ opłacone':'✕ nieopłacone'}</span></div></div>
+  `;
+  document.getElementById('sheetOverlay').classList.add('open');
+}
+
+function closeSheet(e){
+  if(e.target===document.getElementById('sheetOverlay'))
+    document.getElementById('sheetOverlay').classList.remove('open');
+}
+
+function callPerson(){
+  if(currentPerson?.phone)window.location.href='tel:'+currentPerson.phone.replace(/\s/g,'');
+  else toast('Brak numeru telefonu');
+}
+
+function mailPerson(){
+  if(currentPerson?.email)window.location.href=`mailto:${currentPerson.email}?subject=Khordong – ${EVENTS[currentEvent].name}`;
+  else toast('Brak adresu e-mail');
+}
+
+function addPersonToMail(){
+  if(!currentPerson?.email){toast('Brak adresu e-mail');return;}
+  if(!mailRecipients.includes(currentPerson.email)){
+    mailRecipients.push(currentPerson.email);
+    toast('Dodano do listy: '+currentPerson.name);
+  } else toast('Już na liście');
+  renderMailUI();
+  document.getElementById('sheetOverlay').classList.remove('open');
+}
+
+// ── MEALS ─────────────────────────────────────────────────────────────────────
+function renderMeals(){
+  const pp=EVENTS[currentEvent].participants;
+  const el=document.getElementById('mealsContent');
+  if(!pp.length){
+    el.innerHTML=`<div class="card"><div class="empty"><div class="empty-icon">🍽</div><div style="color:var(--dim);font-size:13px">Brak zgłoszeń w tym wydarzeniu</div></div></div>`;
+    return;
+  }
+  const dates=dateRange(pp);
+  if(!dates.find(d=>d.toDateString()===mealDate.toDateString())&&dates.length)mealDate=dates[0];
+
+  const m=countMeals(pp,mealDate);
+  const bNames=getMealNames(pp,mealDate,'breakfast');
+  const lNames=getMealNames(pp,mealDate,'lunch');
+  const dNames=getMealNames(pp,mealDate,'dinner');
+
+  // Buduj kalendarz
+  const calHtml=buildCalendar(dates,pp);
+
+  el.innerHTML=`
+    <div class="card">
+      ${calHtml}
+      <div style="padding:8px 14px 14px;">
+        <div style="font-size:13px;color:var(--text);letter-spacing:.04em;margin-bottom:10px;">${fmtFull(mealDate)}</div>
+        <div class="meal-row" style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+          <div class="meal-cell"><div class="meal-icon">🌅</div><div class="meal-type">Śniadanie</div><div class="meal-n">${m.breakfast}</div><div class="meal-note">osób</div></div>
+          <div class="meal-cell"><div class="meal-icon">☀️</div><div class="meal-type">Obiad</div><div class="meal-n">${m.lunch}</div><div class="meal-note">osób</div></div>
+          <div class="meal-cell"><div class="meal-icon">🌙</div><div class="meal-type">Kolacja</div><div class="meal-n">${m.dinner}</div><div class="meal-note">osób</div></div>
+        </div>
+      </div>
+    </div>
+    ${[['breakfast','Śniadanie 🌅',bNames],['lunch','Obiad ☀️',lNames],['dinner','Kolacja 🌙',dNames]]
+      .filter(([,,names])=>names.length)
+      .map(([,label,names])=>`
+        <div class="card">
+          <div class="card-head"><span class="card-title">${label}</span><span style="font-size:12px;color:var(--muted)">${names.length} os.</span></div>
+          ${names.map(n=>`
+            <div class="person" style="cursor:default">
+              <div class="person-avatar">${initials(n)}</div>
+              <div class="person-info"><div class="person-name">${n}</div></div>
+            </div>`).join('')}
+        </div>`).join('')}
+  `;
+}
+
+function buildCalendar(dates,pp){
+  if(!dates.length)return'';
+  // zakres dat kursu
+  const first=dates[0];
+  const last=dates[dates.length-1];
+  // zestaw dni z posiłkami (jako string YYYY-MM-DD)
+  const mealDays=new Set(dates.map(d=>d.toDateString()));
+
+  // miesiące do wyświetlenia (może być 1 lub 2)
+  const months=[];
+  let cur=new Date(first.getFullYear(),first.getMonth(),1);
+  const endMonth=new Date(last.getFullYear(),last.getMonth()+1,1);
+  while(cur<endMonth){months.push(new Date(cur));cur.setMonth(cur.getMonth()+1);}
+
+  const DOW=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+
+  return months.map(monthStart=>{
+    const year=monthStart.getFullYear();
+    const month=monthStart.getMonth();
+    const daysInMonth=new Date(year,month+1,0).getDate();
+    // poniedziałek=0 offset
+    let startDow=(new Date(year,month,1).getDay()+6)%7;
+
+    const cells=[];
+    for(let i=0;i<startDow;i++)cells.push(`<div class="cal-day empty"></div>`);
+    for(let d=1;d<=daysInMonth;d++){
+      const dt=new Date(year,month,d);
+      const inRange=mealDays.has(dt.toDateString());
+      const isSelected=dt.toDateString()===mealDate.toDateString();
+      const totalMeals=inRange?(countMeals(pp,dt).breakfast+countMeals(pp,dt).lunch+countMeals(pp,dt).dinner):0;
+      const cls=['cal-day',inRange?'has-meals':'',isSelected?'selected':''].filter(Boolean).join(' ');
+      const onclick=inRange?`onclick="selectMealDay(new Date(${dt.getTime()}))"` :'style="opacity:.25;cursor:default"';
+      cells.push(`<div class="${cls}" ${onclick}>${d}</div>`);
+    }
+
+    const monthName=monthStart.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
+    return `<div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-title">${monthName}</div>
+      </div>
+      <div class="cal-grid">
+        ${DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+        ${cells.join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectMealDay(dt){
+  mealDate=dt;
+  renderMeals();
+}
+
+// ── MAIL ──────────────────────────────────────────────────────────────────────
+function renderMailUI(){
+  document.getElementById('recipientCount').textContent=mailRecipients.length;
+  document.getElementById('sendCount').textContent=mailRecipients.length;
+  const wrap=document.getElementById('recipientsWrap');
+  if(!mailRecipients.length){wrap.innerHTML=`<span style="color:var(--dim);font-size:12px">Brak odbiorców</span>`;return;}
+  wrap.innerHTML=mailRecipients.map(e=>`<div class="chip">${e}<span class="chip-x" onclick="removeRecipient('${e}')">×</span></div>`).join('');
+}
+
+function removeRecipient(e){mailRecipients=mailRecipients.filter(x=>x!==e);renderMailUI();}
+function clearRecipients(){mailRecipients=[];renderMailUI();}
+
+function addAllRecipients(){
+  EVENTS[currentEvent].participants.forEach(p=>{
+    if(p.email&&!mailRecipients.includes(p.email))mailRecipients.push(p.email);
+  });
+  renderMailUI();
+  toast(`Dodano ${mailRecipients.length} adresów`);
+}
+
+function setTemplate(el,key){
+  document.querySelectorAll('.tpl').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mailBody').value=TEMPLATES[key]||'';
+}
+
+function sendMails(){
+  const body=document.getElementById('mailBody').value;
+  if(!mailRecipients.length){toast('Dodaj odbiorców!');return;}
+  if(!body.trim()){toast('Wpisz treść wiadomości!');return;}
+  const subj=`Khordong – ${EVENTS[currentEvent].name}`;
+  window.location.href=`mailto:?bcc=${encodeURIComponent(mailRecipients.join(','))}&subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+  toast(`Otwieranie poczty… (${mailRecipients.length} os.)`);
+}
+
+function quickReminder(){
+  switchView('mail',document.getElementById('nav-mail'));
+  addAllRecipients();
+  document.getElementById('mailBody').value=TEMPLATES.reminder;
+}
+
+// ── SYNC ──────────────────────────────────────────────────────────────────────
+async function syncData(){
+  const btn=document.getElementById('syncBtn');
+  btn.classList.add('syncing'); btn.textContent='↻ Syncing…';
+  await loadSheet(currentEvent);
+  btn.classList.remove('syncing'); btn.textContent='↻ Odśwież';
+  toast('✓ Dane aktualne');
+  renderDash();
+  renderPeople();
+  renderMeals();
+}
+
+init();
+</script>
+</body>
+</html>
