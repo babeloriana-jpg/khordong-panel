@@ -1,0 +1,88 @@
+// ============================================================
+// KHORDONG PANEL — Google Apps Script
+// ============================================================
+function doGet(e) {
+  const sheet = e.parameter.sheet || 'PATRUL';
+  const action = e.parameter.action || 'data';
+  
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = spreadsheet.getSheetByName(sheet);
+  
+  if (!ws) {
+    return jsonResponse({ error: 'Nie znaleziono zakladki: ' + sheet });
+  }
+  
+  if (action === 'sheets') {
+    const names = spreadsheet.getSheets().map(s => s.getName());
+    return jsonResponse({ sheets: names });
+  }
+  
+  const data = ws.getDataRange().getValues();
+  if (data.length < 2) return jsonResponse({ participants: [] });
+  
+  const headers = data[0];
+  const rows = data.slice(1).filter(r => r[3]);
+  
+  const participants = rows.map(row => {
+    const get = (keyword) => {
+      const idx = headers.findIndex(h => {
+        const h2 = String(h).toLowerCase()
+          .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e')
+          .replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o')
+          .replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z');
+        const k2 = keyword.toLowerCase()
+          .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e')
+          .replace(/ł/g,'l').replace(/ń/g,'n').replace(/ó/g,'o')
+          .replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z');
+        return h2.includes(k2);
+      });
+      return idx >= 0 ? row[idx] : null;
+    };
+    const fmtDate = (val) => {
+      if (!val) return null;
+      if (val instanceof Date) return val.toISOString().split('T')[0];
+      return String(val);
+    };
+    return {
+      id: get('ID') || '',
+      name: get('nazwisko') || get('Imie') || '',
+      email: get('e-mail') || get('mail') || null,
+      phone: get('telefon') || null,
+      arrival: fmtDate(get('przyjazdu')),
+      departure: fmtDate(get('wyjazdu')),
+      accommodation: get('Zakwaterowanie') || '',
+      meals: get('Posilki') || '',
+      firstMealDate: fmtDate(get('Pierwszy zamowiony posilek - data')),
+      firstMealType: get('Pierwszy zamowiony posilek - typ') || null,
+      lastMealDate: fmtDate(get('Ostatni zamowiony posilek - data')),
+      lastMealType: get('Ostatni zamowiony posilek - typ') || null,
+      paid: !!(get('OPLACONO')),
+    };
+  });
+  
+  return jsonResponse({ sheet, participants });
+}
+
+function doPost(e) {
+  const body = JSON.parse(e.postData.contents);
+  const recipients = body.recipients || [];
+  const subject = body.subject || 'Khordong – wiadomosc';
+  const message = body.message || '';
+  
+  if (!recipients.length) return jsonResponse({ error: 'Brak odbiorców' });
+  
+  recipients.forEach(email => {
+    GmailApp.sendEmail(email, subject, message, {
+      name: 'Khordong Polska',
+      replyTo: 'info@khordong.pl'
+    });
+  });
+  
+  return jsonResponse({ sent: recipients.length, status: 'ok' });
+}
+
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
