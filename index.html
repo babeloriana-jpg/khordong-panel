@@ -461,13 +461,16 @@ function switchView(id,el){
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDash(){
   const ev=EVENTS[currentEvent]; const pp=ev.participants;
-  const today=new Date(); today.setHours(0,0,0,0);
-  const tomorrow=new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-  const todayM=countMeals(pp,today);
-  const tomorrowM=countMeals(pp,tomorrow);
   const paid=pp.filter(p=>p.paid).length;
-  const unpaid=pp.length-paid;
-  const present=pp.filter(p=>isOnSite(p,today)).length;
+const unpaid=pp.length-paid;
+const dates=dateRange(pp);
+const totalM={breakfast:0,lunch:0,dinner:0};
+dates.forEach(d=>{
+  const m=countMeals(pp,d);
+  totalM.breakfast+=m.breakfast;
+  totalM.lunch+=m.lunch;
+  totalM.dinner+=m.dinner;
+});
 
   document.getElementById('dashContent').innerHTML=`
     <div class="card">
@@ -484,25 +487,13 @@ function renderDash(){
 
     <div class="card">
       <div class="card-head">
-        <span class="card-title">🍽 Posiłki dziś</span>
-        <span style="font-size:11px;color:var(--muted)">${fmt(today)}</span>
+        <span class="card-title">🍽 Posiłki — cały kurs</span>
+        <span style="font-size:11px;color:var(--muted)">${dates.length} dni</span>
       </div>
       <div class="meal-row">
-        <div class="meal-cell"><div class="meal-icon">🌅</div><div class="meal-type">Śniadanie</div><div class="meal-n">${todayM.breakfast}</div><div class="meal-note">osób</div></div>
-        <div class="meal-cell"><div class="meal-icon">☀️</div><div class="meal-type">Obiad</div><div class="meal-n">${todayM.lunch}</div><div class="meal-note">osób</div></div>
-        <div class="meal-cell"><div class="meal-icon">🌙</div><div class="meal-type">Kolacja</div><div class="meal-n">${todayM.dinner}</div><div class="meal-note">osób</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <span class="card-title">🍽 Posiłki jutro</span>
-        <span style="font-size:11px;color:var(--muted)">${fmt(tomorrow)}</span>
-      </div>
-      <div class="meal-row">
-        <div class="meal-cell"><div class="meal-icon">🌅</div><div class="meal-type">Śniadanie</div><div class="meal-n">${tomorrowM.breakfast}</div><div class="meal-note">osób</div></div>
-        <div class="meal-cell"><div class="meal-icon">☀️</div><div class="meal-type">Obiad</div><div class="meal-n">${tomorrowM.lunch}</div><div class="meal-note">osób</div></div>
-        <div class="meal-cell"><div class="meal-icon">🌙</div><div class="meal-type">Kolacja</div><div class="meal-n">${tomorrowM.dinner}</div><div class="meal-note">osób</div></div>
+        <div class="meal-cell"><div class="meal-icon">🌅</div><div class="meal-type">Śniadania</div><div class="meal-n">${totalM.breakfast}</div><div class="meal-note">porcji</div></div>
+        <div class="meal-cell"><div class="meal-icon">☀️</div><div class="meal-type">Obiady</div><div class="meal-n">${totalM.lunch}</div><div class="meal-note">porcji</div></div>
+        <div class="meal-cell"><div class="meal-icon">🌙</div><div class="meal-type">Kolacje</div><div class="meal-n">${totalM.dinner}</div><div class="meal-note">porcji</div></div>
       </div>
     </div>
 
