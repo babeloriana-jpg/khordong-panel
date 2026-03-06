@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Khordong – Panel</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#100e0b; --s1:#1c1812; --s2:#252018; --s3:#2e2820;
@@ -26,7 +26,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 /* HEADER */
 .header{background:var(--s1);border-bottom:1px solid var(--border);padding:14px 18px 12px;flex-shrink:0;}
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--gold);letter-spacing:.1em;}
+.logo{font-family:'Inter',sans-serif;font-size:18px;font-weight:600;color:var(--gold);letter-spacing:.08em;}
 .sync-btn{background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;padding:5px 12px;cursor:pointer;transition:all .15s;}
 .sync-btn:hover,.sync-btn.syncing{border-color:var(--golddim);color:var(--gold);}
 .event-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
@@ -42,13 +42,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 /* CARDS */
 .card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
 .card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--border);}
-.card-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;color:var(--text);}
+.card-title{font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--text);}
 
 /* STATS */
 .stat-row{display:grid;grid-template-columns:repeat(3,1fr);}
 .stat{padding:14px 10px;text-align:center;border-right:1px solid var(--border);}
 .stat:last-child{border-right:none;}
-.stat-n{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;color:var(--gold);line-height:1;margin-bottom:4px;}
+.stat-n{font-family:'Inter',sans-serif;font-size:36px;font-weight:600;color:var(--gold);line-height:1;margin-bottom:4px;}
 .stat-l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);}
 
 /* MEALS */
@@ -57,7 +57,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 .meal-cell:last-child{border-right:none;}
 .meal-icon{font-size:22px;margin-bottom:6px;}
 .meal-type{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:6px;}
-.meal-n{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--text);line-height:1;}
+.meal-n{font-family:'Inter',sans-serif;font-size:30px;font-weight:600;color:var(--text);line-height:1;}
 .meal-note{font-size:10px;color:var(--muted);margin-top:2px;}
 
 /* DATE NAV */
@@ -70,7 +70,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 /* CALENDAR */
 .cal-wrap{padding:12px 14px 10px;border-bottom:1px solid var(--border);}
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.cal-title{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text);}
+.cal-title{font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--text);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
 .cal-dow{text-align:center;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding-bottom:4px;}
 .cal-day{text-align:center;padding:6px 2px;border-radius:4px;font-size:12px;cursor:pointer;color:var(--muted);transition:all .15s;border:1px solid transparent;}
@@ -87,7 +87,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 .person{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;gap:12px;}
 .person:last-child{border-bottom:none;}
 .person:active{background:var(--s2);}
-.person-avatar{width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);flex-shrink:0;}
+.person-avatar{width:36px;height:36px;border-radius:50%;background:var(--s3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--gold);flex-shrink:0;}
 .person-info{flex:1;min-width:0;}
 .person-name{color:var(--text);font-size:13px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .person-meta{color:var(--muted);font-size:11px;}
@@ -122,7 +122,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 .sheet-overlay.open .sheet{transform:translateY(0);}
 .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
 .sheet-head{padding:16px 20px;border-bottom:1px solid var(--border);}
-.sheet-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;margin-bottom:4px;}
+.sheet-name{font-family:'Inter',sans-serif;font-size:20px;font-weight:600;margin-bottom:4px;}
 .sheet-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
 .detail-row{display:flex;gap:12px;}
 .detail-key{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);width:110px;flex-shrink:0;padding-top:2px;}
