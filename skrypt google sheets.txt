@@ -21,7 +21,8 @@ function doGet(e) {
   if (data.length < 2) return jsonResponse({ participants: [] });
   
   const headers = data[0];
-  const rows = data.slice(1).filter(r => r[3]);
+ const nameIdx = headers.findIndex(h => String(h).toLowerCase().includes('nazwisko'));
+const rows = data.slice(1).filter(r => r[nameIdx]);
   
   const participants = rows.map(row => {
     const get = (keyword) => {
