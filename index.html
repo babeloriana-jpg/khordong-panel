@@ -12,6 +12,13 @@
   --text:#ede4d4; --muted:#8a7c68; --dim:#504840;
   --green:#5a9648; --red:#b84830; --blue:#4870a8; --r:6px;
 }
+:root.light {
+  --bg:#f5f0e8; --s1:#ede6d8; --s2:#e4dccb; --s3:#d8cebc;
+  --border:#c8bca8; --gold:#8a6820; --gold2:#6a5010; --golddim:#c8a84a;
+  --text:#2a2018; --muted:#6a5c48; --dim:#a09080;
+}
+.theme-btn{background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-size:15px;padding:5px 10px;cursor:pointer;transition:all .15s;line-height:1;}
+.theme-btn:hover{border-color:var(--golddim);color:var(--gold);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:14px;}
 .app{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;}
@@ -148,7 +155,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
   <div class="header">
     <div class="header-top">
       <div class="logo">☸ Khordong</div>
-      <button class="sync-btn" id="syncBtn" onclick="syncData()">↻ Odśwież</button>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Zmień motyw">🌙</button>
+        <button class="sync-btn" id="syncBtn" onclick="syncData()">↻ Odśwież</button>
+      </div>
     </div>
     <div class="event-scroll" id="eventPills"></div>
   </div>
@@ -420,8 +430,25 @@ function dateRange(pp){
   return arr;
 }
 
+// ── THEME ─────────────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const isLight=document.documentElement.classList.toggle('light');
+  document.getElementById('themeBtn').textContent=isLight?'☀️':'🌙';
+  try{localStorage.setItem('theme',isLight?'light':'dark');}catch(e){}
+}
+function initTheme(){
+  try{
+    const saved=localStorage.getItem('theme');
+    if(saved==='light'){
+      document.documentElement.classList.add('light');
+      document.getElementById('themeBtn').textContent='☀️';
+    }
+  }catch(e){}
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 async function init(){
+  initTheme();
   renderPills();
   document.getElementById('dashContent').innerHTML='<div style="padding:40px;text-align:center;color:var(--dim)">Ladowanie danych…</div>';
   await loadSheet(currentEvent);
