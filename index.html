@@ -249,13 +249,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Mon
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbLfY0z8PmQ3H3und0c1oD0LUWF5VORjtV_aiG-mcGv_lIBfk84efJpHLygIhWNkP5/exec';
 
 const SHEET_NAMES = {
-  'PATRUL': 'Patrul Rinpocze',
+  'PATRUL': 'Patrul',
   'CZOD': 'Czod',
   'CZENREZIK': 'Czenrezik',
   'LAMPKI': 'Lampki',
   'DAKPA': 'Dakpa',
   'DZAMBHALA': 'Dzambhala',
-  'WADŻRAKILAJA': 'WadŻrakilaja',
+  'WADŻRAKILAJA': 'Kilaja',
 };
 
 let EVENTS = {};
@@ -290,14 +290,12 @@ async function loadSheet(sheetKey) {
 
 const TEMPLATES = {
   reminder:`Drogi Uczestniku,\n\nPrzypominamy o nadchodzącym kursie w ośrodku Khordong Polska.\nProsimy o potwierdzenie przybycia i daty przyjazdu.\n\nZ serdecznymi pozdrowieniami,\nZespół Khordong`,
-  payment:`Drogi Uczestniku,\n\nPrzypominamy o uregulowaniu płatności za kurs.\nDane do przelewu:Santander Bank Polska S.A.
-
+  payment:`Drogi Uczestniku,\n\nPrzypominamy o uregulowaniu płatności za kurs.\nDane do przelewu:
+  
+Santander Bank Polska S.A.
 al. Jana Pawła II 17,
-
 00-854 Warszawa
-
 nr. konta: 78109022130000000142029967
-
 PL78109022130000000142029967
 
 SWIFT: WBKPPLPP\n\nZ serdecznymi pozdrowieniami,\nZespół Khordong`,
